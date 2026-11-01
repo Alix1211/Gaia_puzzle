@@ -1,0 +1,42 @@
+name: Rebuild offline GAIA Puzzle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'source/**'
+      - 'assets/webp/**'
+      - 'audio/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all portraits and rebuild
+        run: |
+          for n in $(seq 1 24); do
+            for p in 0 1 2 3; do
+              test -s "assets/webp/member${n}_${p}.webp"
+            done
+          done
+          node --check source/gaia-members.js
+          node --check source/gaia-v04-runtime.js
+          node source/rebuild-gaia-v04.mjs
+      - name: Commit single-file offline game
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Bundle GAIA Wellness Royale v0.5 offline HTML'
+            git push
+          fi

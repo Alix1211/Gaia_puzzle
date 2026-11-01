@@ -3,10 +3,7 @@
  'use strict';
  const ART={
    paddle:'__PADDLE__',dildo:'__DILDO__',lips:'__LIPS__',gag:'__GAG__',heart:'__HEART__',
-   poses:[
-    ['__MEMBER1_0__','__MEMBER1_1__','__MEMBER1_2__','__MEMBER1_3__'],
-    ['__MEMBER2_0__','__MEMBER2_1__','__MEMBER2_2__','__MEMBER2_3__']
-   ]
+   poses:__ALL_MEMBER_POSES__
  };
  const E=GaiaEngine;
  const SYMBOLS=[
@@ -17,13 +14,15 @@
   {key:'heart',name:'회복',short:'RECOVERY'}
  ];
  // Every session has four gauges. Asymmetric requirements, not disabled categories.
- const MEMBERS=[
-  {name:'MEMBER 01',rank:'FOUNDATION · PRIVATE A',goals:[58,42,51,38],aiSkill:.49},
-  {name:'MEMBER 02',rank:'ADVANCED · PRIVATE B',goals:[72,98,58,108],aiSkill:.78}
- ];
+ const MEMBERS=GaiaMembers;
+ const TIERS=[['ALL','전체'],['SPECIAL','특별'],['STANDARD','루키'],['SILVER','실버'],
+   ['GOLD','골드'],['PLATINUM','VIP'],['DIAMOND','VVIP']];
  const CFG={perTile:3,chainBonus:.23,damagePerTile:1.35,healPerTile:4,
   energyPerTile:1.9,focusCost:60,focusMultiplier:1.65,
   hpBase:225,hpPerLevel:6,powerPerLevel:.035,maxCascade:28};
+ const nextXP=level=>80+38*(level-1);
+ const attackPower=level=>Math.round(100*(1+(level-1)*CFG.powerPerLevel));
+ const sceneFor=index=>index===0?'one':index===1?'two':MEMBERS[index].tier==='STANDARD'||MEMBERS[index].tier==='SILVER'?'one':'two';
  const $=id=>document.getElementById(id), clamp=(v,a,b)=>Math.max(a,Math.min(v,b));
  const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
  const panel=$('portraitPanel'),portrait=$('portrait'),boardEl=$('board'),modal=$('modal'),modalContent=$('modalContent');
@@ -31,18 +30,19 @@
  const game={board:E.newBoard(),specials:Array(64).fill(null),meters:[0,0,0,0],targets:[0,0,0,0],
    memberIndex:0,trainingLevel:1,xp:0,wins:0,sound:true,hp:225,maxHP:225,
    energy:0,focus:false,turn:0,active:'PLAYER',locked:true,stage:'menu',selected:-1,
-   totalCleared:0,lastChain:0};
- let audioCtx=null,poseTimer=null,toastTimer=null,menuChoice=0,press=null;
+   totalCleared:0,lastChain:0,memberWins:Array(24).fill(0)};
+ let audioCtx=null,poseTimer=null,toastTimer=null,menuChoice=0,menuFilter='ALL',press=null;
  try{
    const saved=JSON.parse(localStorage.getItem('gaia-royale-v02')||'{}');
    game.trainingLevel=clamp(+saved.level||1,1,99);
    game.xp=clamp(+saved.xp||0,0,99999);
    game.wins=clamp(+saved.wins||0,0,99999);
    game.sound=saved.sound!==false;
+   if(Array.isArray(saved.memberWins))game.memberWins=MEMBERS.map((_,i)=>clamp(+saved.memberWins[i]||0,0,99999));
  }catch(err){}
  GaiaAudio.setEnabled(game.sound);
  function save(){try{localStorage.setItem('gaia-royale-v02',JSON.stringify({
-  level:game.trainingLevel,xp:game.xp,wins:game.wins,sound:game.sound}));}catch(err){}}
+  level:game.trainingLevel,xp:game.xp,wins:game.wins,sound:game.sound,memberWins:game.memberWins}));}catch(err){}}
  function showModal(html){modalContent.innerHTML=html;modal.classList.remove('hidden');}
  function hideModal(){modal.classList.add('hidden');}
  function toast(message){const t=$('toast');t.textContent=message;t.classList.add('show');
@@ -79,7 +79,7 @@
  }
  function memberInfo(){
    $('memberName').textContent=MEMBERS[game.memberIndex].name;
-   $('memberRank').textContent=MEMBERS[game.memberIndex].rank;
+   $('memberRank').textContent=MEMBERS[game.memberIndex].rank+' · 권장 Lv.'+MEMBERS[game.memberIndex].level;
    $('portraitTitle').textContent='PRIVATE MEMBER · '+String(game.memberIndex+1).padStart(2,'0');
    setPose(0);
  }
@@ -119,7 +119,8 @@
  }
  function renderHUD(){
    $('trainerLevel').textContent='Lv.'+String(game.trainingLevel).padStart(2,'0');
-   $('xpLabel').textContent='XP '+game.xp+' / '+(80*game.trainingLevel);
+   $('xpLabel').textContent='XP '+game.xp+' / '+nextXP(game.trainingLevel);
+   $('trainerAttack').textContent='ATK '+attackPower(game.trainingLevel);
    $('hpText').textContent=game.hp+' / '+game.maxHP;
    $('hpFill').style.width=clamp(100*game.hp/game.maxHP,0,100)+'%';
    $('energyText').textContent=Math.floor(game.energy)+' / '+CFG.focusCost;
@@ -255,7 +256,7 @@
        setPose(3,1200);GaiaAudio.react('happy');
       }
     }else{
-      game.hp=clamp(game.hp-Math.max(3,Math.round(result.hit.length*CFG.damagePerTile*mult)),0,game.maxHP);
+      game.hp=clamp(game.hp-Math.max(3,Math.round(result.hit.length*CFG.damagePerTile*mult*MEMBERS[game.memberIndex].aiPower)),0,game.maxHP);
       setPose(1,1000);
     }
     if(depth>1){popup(innerWidth*.50,innerHeight*.46,'CHAIN ×'+depth,'heartfx');sound('clear');}
@@ -320,11 +321,17 @@
    game.stage=win?'win':'lose';game.locked=true;game.active='END';
    if(win){
      setPose(3);
-     const xp=26+game.memberIndex*17;game.xp+=xp;game.wins++;
-     let ups=0;while(game.xp>=80*game.trainingLevel){game.xp-=80*game.trainingLevel;game.trainingLevel++;ups++;}
+     const firstClear=game.memberWins[game.memberIndex]===0;
+     const xp=MEMBERS[game.memberIndex].xp+(firstClear?20:0);
+     game.xp+=xp;game.wins++;game.memberWins[game.memberIndex]++;
+     let ups=0;
+     while(game.trainingLevel<99&&game.xp>=nextXP(game.trainingLevel)){
+       game.xp-=nextXP(game.trainingLevel);game.trainingLevel++;ups++;
+     }
      save();renderHUD();
      showModal('<div class="modalbrand">GAIA CITY · EXCLUSIVE WELLNESS</div><h1 class="modaltitle">SESSION COMPLETE</h1>'+
-      '<p class="modaldesc">요구 수치 네 가지 모두 충족!<br>TURN '+game.turn+' · XP +'+xp+(ups?' · LEVEL UP!':'')+'</p>'+
+      '<p class="modaldesc">'+MEMBERS[game.memberIndex].name+' · 요구치 네 가지 달성!<br>TURN '+game.turn+' · XP +'+xp+
+      (firstClear?' (첫 완료 보너스 포함)':'')+(ups?' · LEVEL UP! ATK '+attackPower(game.trainingLevel):'')+'</p>'+
       '<div class="modalactions"><button class="goldbtn primary" data-action="next">NEXT MEMBER</button>'+
       '<button class="goldbtn" data-action="retry">다시 도전</button><button class="goldbtn" data-action="menu">회원 선택</button></div>');
    }else{
@@ -335,7 +342,8 @@
    }
  }
  function start(index){
-   GaiaAudio.selectScene(index===0?'one':'two',true);
+   if(!Number.isInteger(index)||index<0||index>=MEMBERS.length)return;
+   GaiaAudio.selectScene(sceneFor(index),true);
    game.memberIndex=index;game.targets=MEMBERS[index].goals.slice();game.meters=[0,0,0,0];
    game.hp=CFG.hpBase+(game.trainingLevel-1)*CFG.hpPerLevel;game.maxHP=game.hp;
    game.energy=0;game.focus=false;game.turn=0;game.active='PLAYER';game.stage='playing';
@@ -344,16 +352,39 @@
    FX.clear();
    hideModal();memberInfo();renderAll();toast('SESSION START · '+MEMBERS[index].name);
  }
+ function renderMenuPreview(){
+   const m=MEMBERS[menuChoice],preview=$('memberPreview');if(!preview)return;
+   preview.innerHTML='<img class="roster-hero" src="'+ART.poses[menuChoice][0]+'" alt="'+m.name+'">'+
+    '<div class="roster-details"><div class="roster-rank">'+m.rank+'</div><h2>'+m.name+' <small>'+m.age+'세</small></h2>'+
+    '<p class="roster-job">'+m.job+'</p><p class="roster-personality">'+m.personality+'</p>'+
+    '<p class="roster-profile">'+m.profile+'</p><div class="roster-meta">'+
+    '<span>권장 Lv.'+m.level+'</span><span>마조력 '+m.maso+'/10</span><span>AI '+Math.round(m.aiSkill*100)+'</span></div>'+
+    '<div class="roster-goals">'+m.goals.map((v,i)=>'<div><span>'+SYMBOLS[i].name+'</span><strong>'+v+'</strong></div>').join('')+'</div>'+
+    '<p class="roster-record">세션 완료 '+game.memberWins[menuChoice]+'회 · 승리 XP '+m.xp+
+    (m.id===2?' · 오너 특별관리 무료':m.id===1?' · 전속 세션':'')+'</p></div>';
+ }
+ function renderMenuRoster(){
+   const visible=MEMBERS.map((m,i)=>({...m,index:i})).filter(m=>menuFilter==='ALL'||m.tier===menuFilter);
+   if(!visible.some(m=>m.index===menuChoice))menuChoice=visible[0].index;
+   $('rosterTabs').innerHTML=TIERS.map(([key,label])=>'<button class="roster-tab'+
+    (key===menuFilter?' active':'')+'" data-filter="'+key+'" type="button">'+label+'</button>').join('');
+   $('memberCards').innerHTML=visible.map(m=>'<button class="membercard'+(m.index===menuChoice?' sel':'')+
+    '" type="button" data-member="'+m.index+'"><img loading="lazy" alt="'+m.name+'" src="'+ART.poses[m.index][0]+'">'+
+    '<span class="caption"><strong>'+m.name+'</strong><small>Lv.'+m.level+' · '+m.rank.split(' · ')[0]+'</small></span></button>').join('');
+   renderMenuPreview();
+ }
  function showMenu(){
    GaiaAudio.selectScene('menu');
    game.stage='menu';game.locked=true;
    showModal('<div class="modalbrand">GAIA CITY · EXCLUSIVE WELLNESS</div><h1 class="modaltitle">WELLNESS ROYALE</h1>'+
-    '<p class="modaldesc">고급 웰니스 센터의 프라이빗 매치 세션<br>회원의 네 가지 요구치를 모두 채우세요.</p>'+
-    '<div class="membercards">'+MEMBERS.map((m,i)=>'<button class="membercard'+(i===menuChoice?' sel':'')+'" type="button" data-member="'+i+'">'+
-     '<img alt="회원 '+(i+1)+'" src="'+ART.poses[i][0]+'"><span class="caption">'+m.name+'<br>'+m.rank+'</span></button>').join('')+'</div>'+
+    '<p class="modaldesc">24명 회원의 요구치 네 가지를 달성하세요. 반복 세션으로 레벨·공격력·체력이 성장합니다.</p>'+
+    '<div class="roster-layout"><div class="roster-left"><div class="roster-tabs" id="rosterTabs"></div>'+
+    '<div class="membercards" id="memberCards"></div></div><aside class="member-preview" id="memberPreview"></aside></div>'+
     '<div class="modalactions"><button class="goldbtn primary" data-action="start">SESSION START</button>'+
     '<button class="goldbtn" data-action="rules">규칙 보기</button></div>'+
-    '<p class="smallnote">8×8 공유 퍼즐 · 2×2 사각 · 특수블록 · 교차 폭탄 · 낙하 연쇄 · 자동 저장<br>BGM 90 / 120 / 150 BPM · 터치하면 재생</p>');
+    '<p class="smallnote">트레이너 Lv.'+game.trainingLevel+' · ATK '+attackPower(game.trainingLevel)+' · '+game.wins+
+    '승 · 저장 기록 유지 · 권장 레벨은 입장 제한이 아닌 난이도 안내입니다.</p>');
+   renderMenuRoster();
  }
  boardEl.addEventListener('pointerdown',e=>{
    const b=e.target.closest('.tile');
@@ -380,7 +411,7 @@
  });
  $('soundBtn').addEventListener('click',()=>{
   game.sound=!game.sound;GaiaAudio.setEnabled(game.sound);
-  if(game.sound)GaiaAudio.selectScene(game.stage==='menu'?'menu':game.memberIndex===0?'one':'two',true);
+  if(game.sound)GaiaAudio.selectScene(game.stage==='menu'?'menu':sceneFor(game.memberIndex),true);
   save();renderHUD();
  });
  $('restartBtn').addEventListener('click',()=>{if(game.stage==='playing')showModal('<h1 class="modaltitle">RESTART?</h1><p class="modaldesc">현재 세션의 진행을 초기화합니다.</p><div class="modalactions"><button class="goldbtn primary" data-action="retry">다시 시작</button><button class="goldbtn" data-action="resume">취소</button></div>');});
@@ -390,7 +421,12 @@
   '승리 조건은 네 요구치 각각 모두 충족. 하트로 HP를 회복합니다.</p>'+
   '<div class="modalactions"><button class="goldbtn primary" data-action="resume">돌아가기</button><button class="goldbtn" data-action="menu">회원 선택</button></div>'));
  modalContent.addEventListener('click',e=>{
-   const m=e.target.closest('[data-member]');if(m){menuChoice=+m.dataset.member;showMenu();GaiaAudio.selectScene('menu',true);return;}
+   const filter=e.target.closest('[data-filter]');
+   if(filter){menuFilter=filter.dataset.filter;renderMenuRoster();GaiaAudio.selectScene('menu',true);return;}
+   const m=e.target.closest('[data-member]');
+   if(m){menuChoice=+m.dataset.member;
+     for(const card of $('memberCards').children)card.classList.toggle('sel',+card.dataset.member===menuChoice);
+     renderMenuPreview();GaiaAudio.selectScene('menu',true);return;}
    const action=e.target.closest('[data-action]')?.dataset.action;
    if(action==='start')start(menuChoice);
    else if(action==='retry')start(game.memberIndex);
@@ -400,5 +436,5 @@
    else if(action==='rules')$('settingsBtn').click();
  });
  initBoard();memberInfo();renderAll();showMenu();
- window.GAIA_DEBUG={E,game,CFG,MEMBERS,start,move,renderBoard,audio:GaiaAudio};
+ window.GAIA_DEBUG={E,game,CFG,MEMBERS,start,move,renderBoard,attackPower,nextXP,audio:GaiaAudio};
 })();
