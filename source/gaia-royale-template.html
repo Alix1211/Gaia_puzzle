@@ -129,7 +129,9 @@ button:disabled{cursor:default;opacity:.42}
 <body>
 <div id="game">
   <section class="memberportrait" id="portraitPanel">
+    <canvas id="electricCanvas" aria-hidden="true"></canvas>
     <img id="portrait" src="__MEMBER1__" alt="회원 초상화">
+    <div class="portraitLine" id="portraitLine" aria-live="polite"></div>
     <div class="portraitbar" id="portraitTitle">PRIVATE MEMBER · 01</div>
   </section>
   <aside class="goals">
@@ -153,9 +155,10 @@ button:disabled{cursor:default;opacity:.42}
       <div class="reslabel"><span>ENERGY</span><span id="energyText">0 / 60</span></div><div class="resbar energy"><div id="energyFill"></div></div>
     </div>
     <div class="hudcontrols">
-      <button class="goldbtn primary" id="boostBtn" type="button">✦ 강화 <span id="boostState">60</span></button>
+      <button class="goldbtn primary" id="boostBtn" type="button">✦ <span class="boostLabel">강화</span> <span id="boostState">60</span></button>
       <button class="goldbtn iconbtn" id="soundBtn" type="button" title="소리">♪</button>
       <button class="goldbtn iconbtn" id="restartBtn" type="button" title="재시작">↻</button>
+      <button class="goldbtn iconbtn" id="fullscreenBtn" type="button" title="전체화면" aria-label="전체화면">⛶</button>
       <button class="goldbtn iconbtn" id="settingsBtn" type="button" title="설정">⚙</button>
     </div>
     <div class="hudhint">대각선 이동 불가 · 3개 이상 매치 · 플레이어와 AI가 한 수씩 교대</div>

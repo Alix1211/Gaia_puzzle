@@ -134,3 +134,66 @@
   .modalcontent:has(.roster-layout) .modaldesc{font-size:10px}
   .modalcontent:has(.roster-layout) .modalactions .goldbtn{padding:8px 14px}
 }
+
+/* v0.6: one-time clear tint and gold padlock, without restricting selection. */
+.membercard.unbeaten img{filter:grayscale(1) brightness(.68) contrast(1.08)}
+.membercard.unbeaten.sel img{filter:grayscale(1) brightness(.88) contrast(1.08)}
+.membercard.unbeaten .caption small{color:#a9a6a2}
+.member-lock{position:absolute;top:8px;right:8px;z-index:3;width:25px;height:29px;filter:drop-shadow(0 1px 3px #000c)}
+.member-lock svg{width:100%;height:100%;fill:#efcc7f;stroke:#281906;stroke-width:1.4;stroke-linejoin:round}
+.membercard:not(.unbeaten) .member-lock{display:none}
+
+/* Portrait lightning is drawn BEHIND the original artwork. No electric glyphs. */
+#electricCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0}
+.memberportrait>img{z-index:2}
+.memberportrait.electroHit #electricCanvas{opacity:1}
+.memberportrait.electroHit{background-color:#172a40}
+.memberportrait.electroHit>img{animation:gaiaElectroShudder .58s steps(1,end) both!important;filter:drop-shadow(0 0 14px #7fefff) drop-shadow(0 0 25px #528fe9)}
+@keyframes gaiaElectroShudder{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  6%,20%,37%,54%,72%,91%{transform:translateX(calc(-50% - 5px)) translateY(3px) rotate(-.6deg)}
+  13%,28%,45%,62%,81%{transform:translateX(calc(-50% + 6px)) translateY(-3px) rotate(.7deg)}
+}
+@media (orientation:portrait){
+ .memberportrait.electroHit>img{animation-name:gaiaElectroShudderPortrait!important}
+ @keyframes gaiaElectroShudderPortrait{
+  0%,100%{transform:translate(0,0)}
+  7%,21%,38%,55%,73%,90%{transform:translate(-5px,3px) rotate(-.6deg)}
+  14%,29%,47%,64%,82%{transform:translate(6px,-3px) rotate(.7deg)}
+ }
+}
+.portraitLine{position:absolute;z-index:5;left:6%;right:6%;top:12%;pointer-events:none;text-align:center;
+ color:#fff4ce;font-size:clamp(14px,1.35vw,23px);font-weight:900;line-height:1.42;letter-spacing:-.02em;
+ text-shadow:0 2px 2px #000,0 3px 7px #000,1px -1px 6px #000,0 0 14px #000;
+ opacity:0;transform:translateY(9px);transition:opacity .16s,transform .16s}
+.portraitLine.show{opacity:1;transform:translateY(0)}
+@media (orientation:portrait){.portraitLine{left:56%;right:3%;top:auto;bottom:19%;font-size:clamp(11px,2.8vw,16px);line-height:1.35}}
+@media (orientation:landscape) and (max-height:550px){.portraitLine{top:7%;font-size:clamp(12px,2.5vh,17px)}}
+
+/* v0.6.1: keep Android's late-created FX canvas transparent and idle-hidden. */
+.boardbox #boardFx{background:transparent;visibility:hidden;mix-blend-mode:screen}
+
+/* The landscape react animation uses translateX(-50%), invalid for portrait positioning. */
+@media (orientation:portrait){
+ .memberportrait.hit>img{animation:gaiaPortraitSoftHit .28s ease-out!important}
+ @keyframes gaiaPortraitSoftHit{
+  0%,100%{transform:translate3d(0,0,0)}
+  32%{transform:translate3d(-3px,0,0)}
+  67%{transform:translate3d(3px,0,0)}
+ }
+}
+
+/* Sound settings: simple twin sliders without changing the existing design. */
+.audioTuning{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 14px}
+.audioTuning label{display:flex;flex-direction:column;gap:8px;color:#eed4a0;font-size:13px;font-weight:700}
+.audioTuning label span{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.audioTuning output{font-variant-numeric:tabular-nums;color:#fff0bd}
+.audioTuning input[type=range]{width:100%;height:24px;accent-color:#e6bf72;cursor:pointer;touch-action:pan-x}
+@media(max-width:420px){.audioTuning{grid-template-columns:1fr;gap:10px}}
+
+/* Five controls remain visible in the narrow landscape HUD. */
+@media (orientation:landscape){
+ .hudcontrols{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(4,minmax(0,1fr));gap:4px}
+ .hudcontrols .goldbtn,.hudcontrols .goldbtn.iconbtn{min-width:0;padding:7px 3px;white-space:nowrap}
+}
+@media (orientation:landscape) and (max-width:1000px){.hudcontrols .boostLabel{display:none}}

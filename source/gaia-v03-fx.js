@@ -14,7 +14,9 @@ function createGaiaBoardFx(boardEl){
     if(!canvas){
       canvas=document.createElement('canvas');canvas.id='boardFx';canvas.setAttribute('aria-hidden','true');
       box.append(canvas);
-      ctx=canvas.getContext?.('2d',{alpha:true,desynchronized:true});
+      // Android Chrome can composite a desynchronized 2D overlay as opaque black.
+      // Standard alpha-backed canvas keeps the board visible under the FX layer.
+      ctx=canvas.getContext?.('2d',{alpha:true});
     }
     if(!ctx)return false;
     const rect=box.getBoundingClientRect();
@@ -35,6 +37,7 @@ function createGaiaBoardFx(boardEl){
     if(!setup())return;
     events.push({start:now(),duration,draw});
     if(events.length>16)events.splice(0,events.length-16);
+    canvas.style.visibility='visible';
     if(!raf)raf=requestAnimationFrame(frame);
   }
   function frame(time){
@@ -47,10 +50,12 @@ function createGaiaBoardFx(boardEl){
     }
     events.length=0;events.push(...live);
     if(events.length)raf=requestAnimationFrame(frame);
+    else if(canvas)canvas.style.visibility='hidden';
   }
   function clear(){
     events.length=0;if(raf)cancelAnimationFrame(raf);raf=0;
     if(ctx)ctx.clearRect(0,0,w,h);
+    if(canvas)canvas.style.visibility='hidden';
     box?.classList.remove('blastPulse');
   }
   function shards(cells){

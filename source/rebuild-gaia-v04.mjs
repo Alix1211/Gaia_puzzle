@@ -28,6 +28,14 @@ let html=await fs.readFile(path.join(sourceDir,'gaia-royale-template.html'),'utf
 const css=await fs.readFile(path.join(sourceDir,'gaia-v04-overrides.css'),'utf8');
 const scripts=await Promise.all(['gaia-match-engine.js','gaia-v03-fx.js','gaia-v04-audio.js','gaia-members.js',
  'gaia-v04-runtime.js'].map(name=>fs.readFile(path.join(sourceDir,name),'utf8')));
+const dialogues=JSON.parse(await fs.readFile(path.join(sourceDir,'gaia-dialogues.json'),'utf8'));
+for(let id=1;id<=24;id++){
+ const entry=dialogues[id];
+ if(!entry||!['intro','hit','chain','counter','heal'].every(key=>Array.isArray(entry[key])&&entry[key].length)){
+  throw Error('Missing dialogue lines for member '+id);
+ }
+}
+scripts.splice(4,0,'const GaiaDialogues = Object.freeze('+JSON.stringify(dialogues)+');');
 html=html.replace('</style>',css+'\n</style>');
 html=html.replace(/<script>[\s\S]*?<\/script>(?=\s*<\/body>)/,'<script>\n'+scripts.join('\n')+'\n</script>');
 html=html.replaceAll('__MEMBER1__',tokens.__MEMBER1_0__);
