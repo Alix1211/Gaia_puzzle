@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100d11">
+<title>GAIA · WELLNESS ROYALE</title>
+<style>
+:root{--gold:#e4c58a;--light:#fff0c6;--dim:#aa8a5c;--edge:#6f542f;--dark:#0c090d;--red:#c86162;--green:#66c49b;--frame:url("__FRAME__");font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;color:var(--light)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080609;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:disabled{cursor:default;opacity:.42}
+#game{height:100dvh;width:100%;max-width:2200px;margin:auto;display:grid;grid-template-areas:"goals board member" "hud board member";grid-template-columns:clamp(205px,21vw,325px) minmax(0,1fr) clamp(245px,28vw,520px);grid-template-rows:minmax(0,62%) minmax(0,38%);gap:0;background:#100c10 url("__BGLANDSCAPE__") center/cover;position:relative;isolation:isolate}
+#game:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(120deg,#0007,#06030811 40%,#0006)}
+.goals{grid-area:goals;z-index:3;padding:clamp(12px,1.6vw,28px);background:linear-gradient(90deg,#09080ded,#110d14e5);border-right:1px solid #75532c;overflow:hidden;display:flex;flex-direction:column}
+.brand{letter-spacing:.19em;font-weight:900;line-height:1.05;font-size:clamp(20px,2.2vw,35px);color:var(--gold);text-shadow:0 0 24px #a9773240}
+.brand small{display:block;letter-spacing:.33em;font-size:clamp(9px,.8vw,12px);margin-bottom:7px;font-weight:500;color:#bc9654}
+.memberid{margin:22px 0 4px;color:var(--light);letter-spacing:.11em;font-weight:650;font-size:clamp(12px,1.2vw,18px)}
+.rank{font-size:11px;color:var(--dim);letter-spacing:.24em}
+.goalsTitle{font-size:11px;letter-spacing:.18em;color:var(--dim);margin:22px 0 10px;border-bottom:1px solid #92704555;padding-bottom:7px}
+.goal{margin:0 0 clamp(12px,1.6vh,25px)}
+.goalhead{display:flex;align-items:center;justify-content:space-between;font-size:clamp(11px,1vw,15px);margin-bottom:7px}
+.goalhead .num{font-size:11px;color:#d6bb87;font-variant-numeric:tabular-nums}
+.goalrail{height:clamp(8px,1.15vh,12px);padding:2px;border:1px solid #947344;border-radius:50px;background:#070608;box-shadow:inset 0 2px 5px #000}
+.goalfill{height:100%;width:0%;border-radius:99px;transition:width .33s cubic-bezier(.2,.7,.3,1);background:linear-gradient(90deg,#826125,#efcb7a,#ffedaf);box-shadow:0 0 10px #ddaf5970}
+.goal[data-kind="1"] .goalfill{background:linear-gradient(90deg,#9b6633,#ffd88d)}
+.goal[data-kind="2"] .goalfill{background:linear-gradient(90deg,#804a7b,#d7a7d4)}
+.goal[data-kind="3"] .goalfill{background:linear-gradient(90deg,#386d7d,#8de5ed)}
+.memberportrait{grid-area:member;position:relative;overflow:hidden;border-left:2px solid #a47b3f;background:radial-gradient(ellipse at 55% 32%,#634c3c 0%,#1a1015 55%,#050508 93%)}
+.memberportrait:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(103deg,transparent 0 85px,#dfb26008 85px 87px),linear-gradient(180deg,#c9a56922,transparent 35%,#0004);pointer-events:none}
+.memberportrait:after{content:"";position:absolute;inset:7px;border:1px solid #8a6738;pointer-events:none}
+.memberportrait img{position:absolute;bottom:-4%;left:50%;height:95%;max-width:none;transform:translateX(-50%);object-fit:contain;object-position:bottom;filter:drop-shadow(0 8px 24px #0008);transition:filter .14s}
+.memberportrait.hit img{animation:react .28s ease-in-out}
+.memberportrait .portraitbar{position:absolute;bottom:20px;left:6%;right:6%;padding:12px;background:#0a070bbd;border:1px solid #a57c3e;border-radius:8px;text-align:center;letter-spacing:.2em;font-size:12px;color:var(--gold)}
+@keyframes react{0%,100%{transform:translateX(-50%)}35%{transform:translateX(calc(-50% + 9px)) rotate(1deg)}65%{transform:translateX(calc(-50% - 5px))}}
+.boardpanel{grid-area:board;min-width:0;min-height:0;z-index:2;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 8px 3px}
+.boardtop,.boardbottom{width:min(calc(100dvh - 85px),100%);max-width:900px;display:flex;justify-content:space-between;align-items:center;padding:6px 9px;font-size:clamp(10px,1vw,13px);letter-spacing:.08em;color:#c2a573}
+.boardtop strong{font-size:clamp(12px,1.2vw,17px);color:var(--light)}
+.boardbox{position:relative;width:min(calc(100dvh - 85px),100%);max-width:900px;aspect-ratio:1;padding:clamp(6px,.65vw,12px);border:4px solid #b18a4b;border-radius:14px;background:linear-gradient(130deg,#3d2b1f,#100b0d 14%,#08070a 86%,#9b7135);box-shadow:inset 0 0 0 3px #1b1212,0 12px 40px #000d,0 0 0 2px #100e10}
+#board{width:100%;height:100%;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));gap:1.4px;touch-action:none;user-select:none}
+.tile{position:relative;min-width:0;min-height:0;padding:0;border:0;border-radius:9%;display:flex;align-items:center;justify-content:center;outline:0;background:var(--frame) center/100% 100% no-repeat;transition:transform .15s,filter .15s,opacity .16s}
+.tile img{display:block;width:78%;height:78%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 2px #000b)}
+.tile[data-type="1"] img{width:75%;height:75%}
+.tile[data-type="3"] img{width:84%;height:84%}
+.tile.selected{filter:brightness(1.32);outline:2px solid #fbe5a3;outline-offset:-4px;transform:scale(.94);z-index:2}
+.tile.swapping{filter:brightness(1.45) drop-shadow(0 0 7px #f5c472)}
+.tile.clearing{animation:vanish .3s both;filter:brightness(2)}
+.tile.appear{animation:popIn .22s ease-out}
+@keyframes vanish{70%{transform:scale(1.13);opacity:.7}100%{transform:scale(.2);opacity:0}}
+@keyframes popIn{from{transform:translateY(-12px) scale(.85);opacity:.35}to{transform:translateY(0) scale(1);opacity:1}}
+.boardbottom{color:#9b8769}
+.hud{grid-area:hud;z-index:3;padding:clamp(12px,1.5vw,25px);border-right:1px solid #75532c;background:linear-gradient(135deg,#100d13e8,#0a080dec);display:flex;flex-direction:column;justify-content:space-around;gap:8px}
+.trainerHead{display:flex;align-items:center;justify-content:space-between;gap:4px;color:var(--gold);font-weight:800;letter-spacing:.06em}
+.trainerHead span{font-size:clamp(11px,1.2vw,16px)}
+.trainerHead small{font-size:10px;letter-spacing:0;color:#c3a673;font-weight:500}
+.reslabel{display:flex;justify-content:space-between;margin-bottom:4px;color:#e3c69b;font-size:clamp(10px,.95vw,13px)}
+.resbar{height:13px;border:1px solid #9c7744;background:#09070b;padding:2px;border-radius:14px}
+.resbar>div{width:100%;height:100%;border-radius:14px;background:linear-gradient(90deg,#8f313a,#df8b78);transition:width .3s}
+.resbar.energy>div{background:linear-gradient(90deg,#95723d,#ffdfa0)}
+.hudcontrols{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.goldbtn{border:1px solid #9d7842;padding:10px 12px;border-radius:10px;background:linear-gradient(145deg,#33251d,#100c11);color:#f7dfad;box-shadow:inset 0 1px #e7bb6840;font-weight:700;letter-spacing:.04em;font-size:12px}
+.goldbtn:active:not(:disabled){transform:scale(.97);filter:brightness(1.2)}
+.goldbtn.primary{color:#19100c;background:linear-gradient(135deg,#caa25a,#fff0b3 50%,#b48137);border-color:#f8d49c}
+.goldbtn.iconbtn{padding:8px 11px;font-size:16px}
+.hudhint{font-size:10px;letter-spacing:.02em;color:#b1a08b;line-height:1.4}
+#statuspill{font-size:11px;color:#ddc797;border:1px solid #98784e88;border-radius:60px;padding:6px 10px;background:#0b0910ad;max-width:68%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fxlayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.fly{position:fixed;pointer-events:none;width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 8px #fbe2a4c9)}
+.burst{position:fixed;pointer-events:none;font-weight:1000;text-shadow:0 0 17px currentColor,1px 2px 2px #000;white-space:nowrap;color:#f2d391;z-index:50}
+.burst.impact{font-size:40px;color:#ffe9c6;transform:rotate(-13deg)}
+.burst.electric{font-size:65px;color:#affaff}
+.burst.healing{font-size:44px;color:#78ffb0}
+.burst.heartfx{font-size:57px;color:#ffdb78}
+.burst.lipsfx{font-size:44px;color:#ffdaad}
+.toast{position:fixed;z-index:44;bottom:10%;left:50%;transform:translateX(-50%);background:#0f0a12e9;border:1px solid #eac788;border-radius:12px;color:#fff0c6;box-shadow:0 5px 22px #0009;padding:12px 18px;text-align:center;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:14px;background:#050407e8;backdrop-filter:blur(8px)}
+.modal.hidden{display:none}
+.modalcontent{width:min(740px,96vw);max-height:94dvh;overflow:auto;padding:clamp(18px,3vw,38px);border:2px solid #b48b4c;background:radial-gradient(circle at 50% 0%,#2a211f,#100b12 65%,#070709);border-radius:18px;box-shadow:0 0 0 5px #080609,0 15px 80px #000}
+.modalbrand{color:#cbaa65;letter-spacing:.3em;text-align:center;font-size:12px}
+.modaltitle{font-size:clamp(26px,4vw,48px);text-align:center;color:#fce8b5;font-family:Georgia,serif;letter-spacing:.1em;margin:8px 0 4px}
+.modaldesc{text-align:center;font-size:13px;color:#c1ad91;line-height:1.65;margin:4px 0 16px}
+.membercards{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:13px 0 19px}
+.membercard{position:relative;border:2px solid #7a5a32;background:linear-gradient(#242026,#100b11);border-radius:13px;height:clamp(165px,28vh,310px);overflow:hidden;display:flex;align-items:end;justify-content:center;cursor:pointer}
+.membercard.sel{border-color:#ffe1a4;box-shadow:0 0 0 2px #5d401d,inset 0 0 40px #efcc3b13}
+.membercard img{position:absolute;height:112%;bottom:-26%;max-width:100%;object-fit:contain}
+.membercard .caption{position:relative;width:100%;padding:8px 7px;background:#0d0910d8;font-size:12px;z-index:1;text-align:center}
+.modalactions{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.modalactions .goldbtn{padding:12px 24px}
+.tunegrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.tunegrid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#e5c992}
+.tunegrid input,.tunegrid select{width:100%;padding:10px;border:1px solid #84643d;background:#09070b;color:#fff0c6;border-radius:9px;font:inherit}
+.smallnote{text-align:center;font-size:11px;color:#9f8f80;margin-top:12px}
+@media (orientation:portrait){
+#game{grid-template-areas:"member" "board" "hud";grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(150px,28dvh) minmax(0,1fr) minmax(125px,18dvh);background:#100c10 url("__BGPORTRAIT__") center/cover}
+.memberportrait{border:0;border-bottom:2px solid #b18a4b;overflow:hidden}
+.memberportrait img{height:163%;left:auto;right:-8%;bottom:-45%;transform:none}
+.memberportrait.hit img{animation:reactPortrait .28s ease-in-out}
+@keyframes reactPortrait{0%,100%{transform:translateX(0)}40%{transform:translateX(7px) rotate(1deg)}}
+.memberportrait .portraitbar{display:none}
+.goals{position:absolute;left:6px;top:7px;width:54%;height:calc(28dvh - 15px);padding:8px 9px;z-index:5;border-radius:12px;border:1px solid #a5824b99;box-shadow:0 5px 20px #0005;background:linear-gradient(95deg,#0a080fdf,#0a080fc9);overflow:hidden}
+.brand{font-size:14px}.brand small{font-size:8px;margin-bottom:4px}.memberid{margin:7px 0 2px;font-size:10px}.rank{font-size:8px}.goalsTitle{margin:7px 0 5px;padding-bottom:3px;font-size:8px}
+.goal{margin-bottom:4px}.goalhead{font-size:9px;margin-bottom:2px}.goalhead .num{font-size:9px}.goalrail{height:7px;padding:1px}
+.boardpanel{padding:2px 7px;justify-content:center}
+.boardtop,.boardbottom{width:min(calc(100vw - 8px),calc(54dvh - 8px));padding:2px 5px;font-size:10px}
+.boardtop strong{font-size:11px}
+.boardbox{width:min(calc(100vw - 8px),calc(54dvh - 8px));padding:4px;border-width:3px;border-radius:8px}
+#board{gap:.75px}
+.hud{border:0;border-top:2px solid #95713e;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:5px 12px;padding:9px 13px 10px;background:#0c090eea}
+.trainerHead{grid-column:1/3;font-size:13px}.trainerHead small{font-size:9px}
+.resource.hpResource{grid-column:1}.resource.enResource{grid-column:2}
+.reslabel{font-size:10px}.resbar{height:10px}
+.hudcontrols{grid-column:1/3;justify-content:space-between;gap:5px}
+.hudcontrols .goldbtn{padding:7px 11px;font-size:11px}
+.hudcontrols .goldbtn.iconbtn{font-size:13px}
+.hudhint{display:none}
+.modalcontent{padding:17px 12px}
+.membercard{height:min(25dvh,225px)}
+}
+@media (max-height:650px) and (orientation:landscape){
+.goals{padding:9px 12px}.brand{font-size:18px}.brand small{font-size:8px}.memberid{margin:9px 0 2px}.goalsTitle{margin:8px 0 6px}.goal{margin-bottom:7px}.goalrail{height:7px}
+.hud{padding:8px 12px;gap:4px}.hudhint{display:none}
+.boardbox{width:min(calc(100dvh - 56px),100%)}
+.boardtop,.boardbottom{width:min(calc(100dvh - 56px),100%);padding:2px 7px}
+}
+</style>
+</head>
+<body>
+<div id="game">
+  <section class="memberportrait" id="portraitPanel">
+    <img id="portrait" src="__MEMBER1__" alt="회원 초상화">
+    <div class="portraitbar" id="portraitTitle">PRIVATE MEMBER · 01</div>
+  </section>
+  <aside class="goals">
+    <div class="brand"><small>GAIA CITY · PRIVATE CLUB</small>WELLNESS<br>ROYALE</div>
+    <div class="memberid" id="memberName">MEMBER 01</div>
+    <div class="rank" id="memberRank">PRIVATE SESSION · A</div>
+    <div class="goalsTitle">SESSION REQUIREMENTS</div>
+    <div id="goalRows"></div>
+  </aside>
+  <main class="boardpanel">
+    <div class="boardtop"><strong>ROYAL MATCH · 8×8</strong><span id="turnLabel">YOUR TURN</span></div>
+    <div class="boardbox"><div id="board" role="grid" aria-label="8×8 매치 퍼즐"></div></div>
+    <div class="boardbottom"><span id="moveLabel">TURN 00</span><span id="statuspill">블록을 밀어서 3개 연결</span></div>
+  </main>
+  <footer class="hud">
+    <div class="trainerHead"><span>TRAINER <b id="trainerLevel">Lv.01</b></span><small id="xpLabel">XP 0 / 80</small></div>
+    <div class="resource hpResource">
+      <div class="reslabel"><span>HP</span><span id="hpText">120 / 120</span></div><div class="resbar"><div id="hpFill"></div></div>
+    </div>
+    <div class="resource enResource">
+      <div class="reslabel"><span>ENERGY</span><span id="energyText">0 / 60</span></div><div class="resbar energy"><div id="energyFill"></div></div>
+    </div>
+    <div class="hudcontrols">
+      <button class="goldbtn primary" id="boostBtn" type="button">✦ 강화 <span id="boostState">60</span></button>
+      <button class="goldbtn iconbtn" id="soundBtn" type="button" title="소리">♪</button>
+      <button class="goldbtn iconbtn" id="restartBtn" type="button" title="재시작">↻</button>
+      <button class="goldbtn iconbtn" id="settingsBtn" type="button" title="설정">⚙</button>
+    </div>
+    <div class="hudhint">대각선 이동 불가 · 3개 이상 매치 · 플레이어와 AI가 한 수씩 교대</div>
+  </footer>
+</div>
+<div id="fxlayer"></div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="modalcontent" id="modalContent"></div></div>
+<script>
+(() => {
+ 'use strict';
+ const ART={
+   paddle:'__PADDLE__',dildo:'__DILDO__',lips:'__LIPS__',
+   gag:'__GAG__',heart:'__HEART__',member1:'__MEMBER1__',member2:'__MEMBER2__'
+ };
+ const SYMBOLS=[
+   {key:'paddle',name:'타격',short:'PHYSICAL',color:'#edcf93'},
+   {key:'dildo',name:'성적',short:'INTIMACY',color:'#e9ad64'},
+   {key:'lips',name:'모럴',short:'MORALE',color:'#c89ccf'},
+   {key:'gag',name:'복종',short:'SUBMISSION',color:'#8bd9e9'},
+   {key:'heart',name:'회복',short:'HEAL',color:'#7deaab'}
+ ];
+ const MEMBERS=[
+   {name:'MEMBER 01',rank:'PRIVATE SESSION · A',portrait:ART.member1,
+    goals:[27,30,27,30],aiSkill:.53},
+   {name:'MEMBER 02',rank:'PRIVATE SESSION · B',portrait:ART.member2,
+    goals:[30,51,36,48],aiSkill:.78}
+ ];
+ const CFG={
+  matchPoints:{3:12,4:20,5:32},chainMultiplier:.24,damageFactor:.37,
+  healPerMatch:22,energyPerMatch:7,focusCost:60,focusBonus:1.6,
+  hpBase:120,hpPerLevel:7,powerPerLevel:.05,maxCascade:24
+ };
+ const $=(id)=>document.getElementById(id);
+ const boardEl=$('board'),modal=$('modal'),modalContent=$('modalContent');
+ const delay=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
+ const clamp=(v,a,b)=>Math.max(a,Math.min(v,b));
+ const game={board:[],memberIndex:0,targets:[0,0,0,0],meters:[0,0,0,0],
+  hp:120,maxHP:120,energy:0,turn:0,locked:true,stage:'menu',selected:-1,
+  swapHighlight:[],clearHighlight:[],focus:false,trainingLevel:1,xp:0,sound:true,
+  active:'PLAYER',chain:0,log:[],wins:0};
+ try{
+  const saved=JSON.parse(localStorage.getItem('gaia-royale-trainer-v01')||'{}');
+  game.trainingLevel=clamp(+saved.level||1,1,99);
+  game.xp=clamp(+saved.xp||0,0,99999);
+  game.wins=clamp(+saved.wins||0,0,99999);
+  game.sound=saved.sound!==false;
+  if(Array.isArray(saved.memberGoals)){
+   for(let i=0;i<MEMBERS.length;i++){
+    const g=saved.memberGoals[i];
+    if(Array.isArray(g)&&g.length===4&&g.every(x=>Number.isFinite(x)&&x>=1&&x<=500))
+     MEMBERS[i].goals=g.slice();
+   }
+  }
+  if(Array.isArray(saved.memberAi)){
+   for(let i=0;i<MEMBERS.length;i++){
+    const v=Number(saved.memberAi[i]);
+    if(Number.isFinite(v))MEMBERS[i].aiSkill=clamp(v,0,1);
+   }
+  }
+  if(saved.rules){
+   const r=saved.rules;
+   if(Number.isFinite(r.match3)&&r.match3>=1&&r.match3<=100){
+    CFG.matchPoints[3]=r.match3;CFG.matchPoints[4]=Math.round(r.match3*1.65);
+    CFG.matchPoints[5]=Math.round(r.match3*2.66);
+   }
+   if(Number.isFinite(r.damage))CFG.damageFactor=clamp(r.damage,.1,3);
+   if(Number.isFinite(r.hp))CFG.hpBase=clamp(r.hp,30,500);
+   if(Number.isFinite(r.heal))CFG.healPerMatch=clamp(r.heal,1,200);
+  }
+ }catch(e){}
+ function store(){
+  try{localStorage.setItem('gaia-royale-trainer-v01',
+   JSON.stringify({level:game.trainingLevel,xp:game.xp,wins:game.wins,sound:game.sound,
+    memberGoals:MEMBERS.map(m=>m.goals),memberAi:MEMBERS.map(m=>m.aiSkill),
+    rules:{match3:CFG.matchPoints[3],damage:CFG.damageFactor,hp:CFG.hpBase,heal:CFG.healPerMatch}}));}
+  catch(e){}
+ }
+ function random(n){return Math.floor(Math.random()*n);}
+ function swap(a,b){const t=game.board[a];game.board[a]=game.board[b];game.board[b]=t;}
+ function adjacent(a,b){
+  if(a<0||b<0||a>=64||b>=64)return false;
+  return (Math.abs(a-b)===8)||(Math.floor(a/8)===Math.floor(b/8)&&Math.abs(a-b)===1);
+ }
+ function scan(b){
+  const groups=[],set=new Set();
+  for(let r=0;r<8;r++)for(let c=0;c<8;){
+   const start=c,t=b[r*8+c];while(c<8&&b[r*8+c]===t)c++;
+   if(t>=0&&c-start>=3){const ix=[];for(let k=start;k<c;k++){ix.push(r*8+k);set.add(r*8+k);}groups.push({type:t,indices:ix});}
+  }
+  for(let c=0;c<8;c++)for(let r=0;r<8;){
+   const start=r,t=b[r*8+c];while(r<8&&b[r*8+c]===t)r++;
+   if(t>=0&&r-start>=3){const ix=[];for(let k=start;k<r;k++){ix.push(k*8+c);set.add(k*8+c);}groups.push({type:t,indices:ix});}
+  }
+  return {groups,indices:[...set]};
+ }
+ function potentialMoves(b){
+  const moves=[];
+  for(let i=0;i<64;i++)for(const j of [i+1,i+8]){
+   if(j>=64||(j===i+1&&i%8===7))continue;
+   const t=b[i];b[i]=b[j];b[j]=t;
+   const m=scan(b);
+   b[j]=b[i];b[i]=t;
+   if(m.indices.length)moves.push({a:i,b:j,count:m.indices.length,
+    runs:m.groups.reduce((s,g)=>s+points(g.indices.length),0)});
+  }
+  return moves;
+ }
+ function points(n){
+  if(n<=2)return 0;
+  if(n<=5)return CFG.matchPoints[n];
+  return CFG.matchPoints[5]+(n-5)*13;
+ }
+ function makeBoard(){
+  for(let tries=0;tries<30;tries++){
+   const b=Array(64).fill(-1);
+   for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    let choices=[0,1,2,3,4];
+    if(c>=2&&b[r*8+c-1]===b[r*8+c-2])choices=choices.filter(x=>x!==b[r*8+c-1]);
+    if(r>=2&&b[(r-1)*8+c]===b[(r-2)*8+c])choices=choices.filter(x=>x!==b[(r-1)*8+c]);
+    b[r*8+c]=choices[random(choices.length)];
+   }
+   if(potentialMoves(b).length)return b;
+  }
+  return makeBoardFallback();
+ }
+ function makeBoardFallback(){
+  const b=[];for(let i=0;i<64;i++)b.push((i*3+Math.floor(i/8))%5);
+  return b;
+ }
+ function resizeBoard(){
+  if(game.stage!=='menu')renderBoard();
+ }
+ function renderBoard(){
+  let str='';
+  for(let i=0;i<64;i++){
+   const type=game.board[i];
+   const classes=['tile'];
+   if(game.selected===i)classes.push('selected');
+   if(game.swapHighlight.includes(i))classes.push('swapping');
+   if(game.clearHighlight.includes(i))classes.push('clearing');
+   str+='<button class="'+classes.join(' ')+'" data-i="'+i+'" data-type="'+type+
+     '" type="button" role="gridcell" aria-label="'+SYMBOLS[type].name+
+     '"><img draggable="false" src="'+ART[SYMBOLS[type].key]+'"></button>';
+  }
+  boardEl.innerHTML=str;
+ }
+ function renderGoals(){
+  const values=game.meters,goals=game.targets;
+  $('goalRows').innerHTML=SYMBOLS.slice(0,4).map((s,i)=>{
+   const v=Math.min(values[i],goals[i]);
+   const pct=goals[i]?clamp(100*v/goals[i],0,100):100;
+   return '<div class="goal" data-kind="'+i+'"><div class="goalhead"><span>'+s.name+
+    ' <span style="color:#93795e">'+s.short+'</span></span><span class="num">'+v+' / '+goals[i]+
+    '</span></div><div class="goalrail"><div class="goalfill" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+ }
+ function renderHUD(){
+  $('trainerLevel').textContent='Lv.'+String(game.trainingLevel).padStart(2,'0');
+  $('xpLabel').textContent='XP '+game.xp+' / '+(80*game.trainingLevel);
+  $('hpText').textContent=game.hp+' / '+game.maxHP;
+  $('hpFill').style.width=(100*game.hp/game.maxHP)+'%';
+  $('energyText').textContent=game.energy+' / '+CFG.focusCost;
+  $('energyFill').style.width=(100*game.energy/CFG.focusCost)+'%';
+  $('moveLabel').textContent='TURN '+String(game.turn).padStart(2,'0');
+  $('turnLabel').textContent=game.stage==='playing'?
+   (game.active==='PLAYER'?'YOUR TURN':'AI TURN'):'SESSION';
+  $('soundBtn').textContent=game.sound?'♪':'♩';
+  $('boostBtn').disabled=game.energy<CFG.focusCost||game.focus||game.locked;
+  $('boostState').textContent=game.focus?'ON':CFG.focusCost;
+  $('statuspill').textContent=game.focus?'다음 공격 1.6× 강화':(game.active==='AI'?'상대의 매치 진행 중':'블록을 밀어서 3개 연결');
+ }
+ function renderAll(){renderBoard();renderGoals();renderHUD();}
+ function setPortrait(index){
+  const m=MEMBERS[index];
+  $('portrait').src=m.portrait;
+  $('memberName').textContent=m.name;
+  $('memberRank').textContent=m.rank;
+  $('portraitTitle').textContent='PRIVATE MEMBER · '+String(index+1).padStart(2,'0');
+ }
+ function hideModal(){modal.classList.add('hidden');}
+ function showModal(content){modalContent.innerHTML=content;modal.classList.remove('hidden');}
+ const intro='<div class="modalbrand">GAIA CITY · EXCLUSIVE WELLNESS</div>';
+ let menuChoice=0;
+ function showMenu(){
+  game.stage='menu';game.locked=true;
+  const cards=MEMBERS.map((m,i)=>'<button type="button" class="membercard'+(i===menuChoice?' sel':'')+
+   '" data-member="'+i+'"><img src="'+m.portrait+'"><span class="caption">'+m.name+'<br>'+
+   (i===0?'BEGINNER SESSION':'PRIVATE SESSION')+'</span></button>').join('');
+  showModal(intro+'<h1 class="modaltitle">WELLNESS ROYALE</h1>'+
+   '<div class="modaldesc">프라이빗 세션 · 회원을 선택하고 퍼즐을 시작하세요.</div>'+
+   '<div class="membercards">'+cards+'</div>'+
+   '<div class="modalactions"><button type="button" class="goldbtn primary" data-action="start">SESSION START</button>'+
+   '<button type="button" class="goldbtn" data-action="rules">게임 설명</button></div>'+
+   '<div class="smallnote">오프라인 단일 HTML · 터치/드래그 지원 · 진행도 자동 저장</div>');
+ }
+ function startSession(index){
+  hideModal();
+  game.memberIndex=index;game.targets=MEMBERS[index].goals.slice();
+  game.meters=[0,0,0,0];game.maxHP=CFG.hpBase+(game.trainingLevel-1)*CFG.hpPerLevel;
+  game.hp=game.maxHP;game.energy=0;game.turn=0;game.locked=false;game.stage='playing';
+  game.focus=false;game.active='PLAYER';game.selected=-1;game.swapHighlight=[];
+  game.clearHighlight=[];game.board=makeBoard();game.log=[];
+  setPortrait(index);renderAll();toast('SESSION START · '+MEMBERS[index].name);
+ }
+ function toast(t){
+  const el=$('toast');el.textContent=t;el.classList.add('show');
+  clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1250);
+ }
+ let audioCtx=null;
+ function tone(freq,dur=.08,type='sine',vol=.09,slide=1){
+  if(!game.sound)return;
+  try{
+   audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+   if(audioCtx.state==='suspended')audioCtx.resume();
+   const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),g=audioCtx.createGain();
+   osc.type=type;osc.frequency.setValueAtTime(freq,now);
+   osc.frequency.exponentialRampToValueAtTime(Math.max(30,freq*slide),now+dur);
+   g.gain.setValueAtTime(vol,now);g.gain.exponentialRampToValueAtTime(.0001,now+dur);
+   osc.connect(g);g.connect(audioCtx.destination);osc.start(now);osc.stop(now+dur+.01);
+  }catch(e){}
+ }
+ function sound(kind){
+  if(kind===0){
+   tone(140,.10,'triangle',.18,.36);tone(65,.13,'sawtooth',.07,.85);
+   setTimeout(()=>tone(112,.09,'triangle',.12,.37),90);
+  }
+  else if(kind===1){tone(560,.17,'sine',.09,1.8);setTimeout(()=>tone(840,.16,'sine',.08,1.3),70);}
+  else if(kind===2){tone(430,.12,'sine',.1,1.1);setTimeout(()=>tone(620,.12,'sine',.07,1.2),90);}
+  else if(kind===3){tone(170,.07,'sawtooth',.1,3.5);setTimeout(()=>tone(760,.10,'square',.05,.3),65);}
+  else if(kind===4){tone(490,.18,'sine',.1,1.32);setTimeout(()=>tone(740,.27,'sine',.07,1.3),110);}
+ }
+ function vibrate(n){try{if(navigator.vibrate)navigator.vibrate(n);}catch(e){}}
+ function burst(type,x,y){
+  const b=document.createElement('div');
+  const symbols=['퍽!','♥','💋','ϟ','✚'];
+  const styles=['impact','heartfx','lipsfx','electric','healing'];
+  b.className='burst '+styles[type];b.textContent=symbols[type];
+  b.style.left=x+'px';b.style.top=y+'px';
+  $('fxlayer').appendChild(b);
+  const anim=b.animate([
+   {opacity:0,transform:'translate(-50%,-50%) scale(.4) rotate(-12deg)'},
+   {opacity:1,transform:'translate(-50%,-70%) scale(1.22) rotate(6deg)',offset:.4},
+   {opacity:0,transform:'translate(-50%,-115%) scale(.78) rotate(-4deg)'}
+  ],{duration:650,easing:'ease-out',fill:'forwards'});
+  anim.onfinish=()=>b.remove();
+ }
+ function fx(type,actor,at){
+  const from=boardEl.querySelector('[data-i="'+at+'"]')?.getBoundingClientRect();
+  if(!from)return;
+  const portrait=$('portraitPanel').getBoundingClientRect();
+  const hp=$('hpFill').getBoundingClientRect();
+  const x=from.left+from.width/2,y=from.top+from.height/2;
+  const dest=actor==='AI'||type===4?hp:portrait;
+  const tx=dest.left+dest.width*.52,ty=dest.top+dest.height*.45;
+  const n=document.createElement('img');n.className='fly';
+  n.src=actor==='PLAYER'&&type===1?ART.heart:ART[SYMBOLS[type].key];
+  n.style.left=(x-26)+'px';n.style.top=(y-26)+'px';
+  $('fxlayer').appendChild(n);
+  n.animate([{transform:'translate(0,0) scale(.7)',opacity:.95},
+   {transform:'translate('+(tx-x)+'px,'+(ty-y)+'px) scale(1.3)',opacity:.95},
+   {transform:'translate('+(tx-x)+'px,'+(ty-y)+'px) scale(.4)',opacity:0}],
+   {duration:440,easing:'ease-in',fill:'forwards'}).onfinish=()=>{
+    n.remove();
+    if(actor==='PLAYER'){
+     burst(type,tx,ty);
+     if(type===3){setTimeout(()=>burst(3,tx-19,ty+23),105);setTimeout(()=>burst(3,tx+18,ty-12),220);}
+     if(type!==4){$('portraitPanel').classList.remove('hit');
+     void $('portraitPanel').offsetWidth;$('portraitPanel').classList.add('hit');}}
+    else burst(0,hp.left+hp.width/2,hp.top);
+   };
+  sound(actor==='PLAYER'?type:0);
+  if(actor==='PLAYER'&&type===0)vibrate(36);
+ }
+ function applyGroup(actor,g,chain){
+  const n=g.indices.length;
+  const mult=1+CFG.chainMultiplier*(chain-1);
+  const amount=Math.round(points(n)*mult);
+  const center=g.indices[Math.floor(g.indices.length/2)];
+  fx(g.type,actor,center);
+  if(actor==='PLAYER'){
+   if(g.type===4)game.hp=clamp(game.hp+CFG.healPerMatch+(n-3)*8,0,game.maxHP);
+   else{
+    const focusMult=game.focus?CFG.focusBonus:1;
+    const trainerMult=1+(game.trainingLevel-1)*CFG.powerPerLevel;
+    game.meters[g.type]=clamp(game.meters[g.type]+Math.round(amount*focusMult*trainerMult),0,game.targets[g.type]);
+   }
+   game.energy=clamp(game.energy+CFG.energyPerMatch+(n-3)*3,0,CFG.focusCost);
+  }else{
+   const d=Math.max(3,Math.round(amount*CFG.damageFactor));
+   game.hp=clamp(game.hp-d,0,game.maxHP);
+  }
+ }
+ function gravity(indices){
+  const gone=new Set(indices);
+  for(let c=0;c<8;c++){
+   const keep=[];
+   for(let r=7;r>=0;r--)if(!gone.has(r*8+c))keep.push(game.board[r*8+c]);
+   for(let r=7,k=0;r>=0;r--,k++)game.board[r*8+c]=k<keep.length?keep[k]:random(5);
+  }
+ }
+ async function resolve(actor){
+  let chain=0,any=false;
+  while(chain<CFG.maxCascade){
+   const m=scan(game.board);
+   if(!m.indices.length)break;
+   chain++;any=true;game.chain=chain;
+   game.clearHighlight=m.indices;renderBoard();
+   for(const g of m.groups)applyGroup(actor,g,chain);
+   renderGoals();renderHUD();
+   await delay(300);
+   game.clearHighlight=[];gravity(m.indices);renderBoard();
+   await delay(190);
+   if(game.hp<=0){finish(false);return true;}
+   if(game.meters.every((v,i)=>v>=game.targets[i])){finish(true);return true;}
+  }
+  if(chain>1)toast('CHAIN ×'+chain+' · '+(actor==='PLAYER'?'COMBO!':'AI COMBO'));
+  if(any&&!potentialMoves(game.board).length){
+   game.board=makeBoard();renderBoard();toast('NO MOVES · SHUFFLE');
+  }
+  return false;
+ }
+ function pickAI(){
+  const moves=potentialMoves(game.board);
+  if(!moves.length)return null;
+  const skill=MEMBERS[game.memberIndex].aiSkill;
+  moves.sort((a,b)=>b.runs-a.runs);
+  if(Math.random()<skill)return moves[0];
+  return moves[random(moves.length)];
+ }
+ async function aiTurn(){
+  if(game.stage!=='playing')return;
+  game.active='AI';renderHUD();await delay(490);
+  const choice=pickAI();
+  if(!choice){game.board=makeBoard();renderBoard();toast('SHUFFLE');game.active='PLAYER';return;}
+  game.swapHighlight=[choice.a,choice.b];renderBoard();
+  await delay(440);game.swapHighlight=[];swap(choice.a,choice.b);renderBoard();
+  const ended=await resolve('AI');
+  if(ended||game.stage!=='playing')return;
+  game.active='PLAYER';renderHUD();
+ }
+ async function attempt(a,b){
+  if(game.locked||game.stage!=='playing'||game.active!=='PLAYER')return;
+  if(!adjacent(a,b))return;
+  game.selected=-1;swap(a,b);
+  if(!scan(game.board).indices.length){
+   swap(a,b);game.swapHighlight=[a,b];renderBoard();tone(180,.12,'triangle',.05,.6);
+   setTimeout(()=>{game.swapHighlight=[];renderBoard();},180);return;
+  }
+  game.locked=true;game.turn++;game.swapHighlight=[a,b];renderBoard();
+  await delay(125);game.swapHighlight=[];renderBoard();
+  const ended=await resolve('PLAYER');
+  game.focus=false;renderHUD();
+  if(!ended&&game.stage==='playing')await aiTurn();
+  if(game.stage==='playing'){game.locked=false;renderHUD();}
+ }
+ function finish(win){
+  if(game.stage!=='playing')return;
+  game.stage=win?'win':'lose';game.locked=true;game.active='END';
+  if(win){
+   game.xp+=24+game.memberIndex*13;game.wins++;
+   let leveled=false;
+   while(game.xp>=80*game.trainingLevel){
+    game.xp-=80*game.trainingLevel;game.trainingLevel++;leveled=true;
+   }
+   store();renderHUD();
+   showModal(intro+'<div class="modaltitle">SESSION COMPLETE</div>'+
+    '<div class="modaldesc">모든 요구 게이지 충족<br>TURN '+game.turn+
+    ' · TRAINER XP +'+(24+game.memberIndex*13)+(leveled?' · LEVEL UP!':'')+'</div>'+
+    '<div class="modalactions"><button class="goldbtn primary" data-action="next">NEXT MEMBER</button>'+
+    '<button class="goldbtn" data-action="retry">다시 플레이</button>'+
+    '<button class="goldbtn" data-action="menu">회원 선택</button></div>');
+  }else{
+   renderHUD();
+   showModal(intro+'<div class="modaltitle">TRAINER EXHAUSTED</div>'+
+    '<div class="modaldesc">체력이 모두 소진됐습니다.<br>현재 달성도를 유지하지 않고 다시 도전합니다.</div>'+
+    '<div class="modalactions"><button class="goldbtn primary" data-action="retry">RETRY SESSION</button>'+
+    '<button class="goldbtn" data-action="menu">회원 선택</button></div>');
+  }
+ }
+ let pressStart=-1,pressX=0,pressY=0;
+ boardEl.addEventListener('pointerdown',(e)=>{
+  const cell=e.target.closest('.tile');if(!cell||game.locked)return;
+  if(game.sound){try{
+   audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+   if(audioCtx.state==='suspended')audioCtx.resume();
+  }catch(err){}}
+  pressStart=+cell.dataset.i;pressX=e.clientX;pressY=e.clientY;
+ });
+ window.addEventListener('pointerup',(e)=>{
+  if(pressStart<0)return;
+  const start=pressStart;pressStart=-1;
+  const cell=document.elementFromPoint(e.clientX,e.clientY)?.closest('.tile');
+  let end=cell?+cell.dataset.i:-1;
+  if(end===start){
+   const dx=e.clientX-pressX,dy=e.clientY-pressY;
+   if(Math.max(Math.abs(dx),Math.abs(dy))>12){
+    if(Math.abs(dx)>Math.abs(dy))end=start+(dx>0?1:-1);
+    else end=start+(dy>0?8:-8);
+   }
+  }
+  if(game.locked||game.stage!=='playing')return;
+  if(adjacent(start,end)){attempt(start,end);return;}
+  if(game.selected>=0&&adjacent(game.selected,start)){attempt(game.selected,start);return;}
+  game.selected=game.selected===start?-1:start;renderBoard();
+ });
+ $('boostBtn').addEventListener('click',()=>{
+  if(game.energy<CFG.focusCost||game.locked||game.focus)return;
+  game.energy=0;game.focus=true;renderHUD();toast('FOCUS BOOST · 다음 공격 강화');tone(620,.18,'sine',.1,1.8);
+ });
+ $('soundBtn').addEventListener('click',()=>{game.sound=!game.sound;store();renderHUD();});
+ $('restartBtn').addEventListener('click',()=>{
+  if(game.stage==='playing')showModal(intro+'<h2 class="modaltitle">RESTART?</h2>'+
+   '<div class="modaldesc">현재 세션을 처음부터 시작합니다.</div><div class="modalactions">'+
+   '<button class="goldbtn primary" data-action="retry">다시 시작</button>'+
+   '<button class="goldbtn" data-action="resume">취소</button></div>');
+ });
+ $('settingsBtn').addEventListener('click',()=>{
+  showModal(intro+'<h2 class="modaltitle">SESSION RULES</h2>'+
+   '<div class="modaldesc">8×8 공유 판 · 플레이어와 AI가 한 수씩 교대<br>'+
+   '네 공격 게이지 모두 달성하면 승리 · HP가 0이면 패배<br>'+
+   '연쇄는 수를 둔 쪽에 귀속 · 하트는 플레이어에게 회복</div>'+
+   '<div class="goalsTitle">회원별 목표 수치 · '+MEMBERS[game.memberIndex].name+'</div>'+
+   '<div class="tunegrid">'+SYMBOLS.slice(0,4).map((s,i)=>'<label>'+s.name+
+    ' 요구치<input id="goalEdit'+i+'" type="number" min="1" max="500" value="'+
+    MEMBERS[game.memberIndex].goals[i]+'"></label>').join('')+'</div>'+
+   '<div class="goalsTitle">전투 밸런스 · 테스트용</div>'+
+   '<div class="tunegrid"><label>3매치 공격 수치<input id="ruleAtk" type="number" min="1" max="100" value="'+CFG.matchPoints[3]+'"></label>'+
+   '<label>AI 피해 배율<input id="ruleAi" type="number" min=".1" max="3" step=".05" value="'+CFG.damageFactor+'"></label>'+
+   '<label>최대 HP<input id="ruleHP" type="number" min="30" max="500" value="'+CFG.hpBase+'"></label>'+
+   '<label>회복량<input id="ruleHeal" type="number" min="1" max="200" value="'+CFG.healPerMatch+'"></label>'+
+   '<label>AI 최선수 선택 확률<input id="ruleSkill" type="number" min="0" max="1" step=".05" value="'+
+   MEMBERS[game.memberIndex].aiSkill+'"></label></div>'+
+   '<div class="smallnote">이 값들은 초기판 테스트용입니다. 적용하면 현재 세션을 다시 시작합니다.</div>'+
+   '<div class="modalactions" style="margin-top:16px"><button class="goldbtn primary" data-action="apply">수치 적용</button>'+
+   '<button class="goldbtn" data-action="resume">돌아가기</button>'+
+   '<button class="goldbtn" data-action="menu">회원 선택</button></div>');
+ });
+ modalContent.addEventListener('click',(e)=>{
+  const m=e.target.closest('[data-member]');if(m){
+   menuChoice=+m.dataset.member;showMenu();return;
+  }
+  const a=e.target.closest('[data-action]')?.dataset.action;
+  if(!a)return;
+  if(a==='start'){startSession(menuChoice);}
+  else if(a==='retry'){startSession(game.memberIndex);}
+  else if(a==='next'){startSession((game.memberIndex+1)%MEMBERS.length);}
+  else if(a==='menu'){showMenu();}
+  else if(a==='resume'){hideModal();if(game.stage==='menu')showMenu();}
+  else if(a==='rules'){showModal(intro+'<h2 class="modaltitle">HOW TO PLAY</h2>'+
+   '<div class="modaldesc">이웃 블록 둘을 교환해 같은 블록 3개 이상을 연결하세요.<br>'+
+   '패들=타격 · 금색 아이콘=성적 · 입술=모럴 · 볼개그=복종 · 하트=HP 회복<br>'+
+   'AI가 매치하면 플레이어 HP가 줄어듭니다. 연쇄 매치도 점수에 반영됩니다.</div>'+
+   '<div class="modalactions"><button class="goldbtn primary" data-action="menu">확인</button></div>');}
+  else if(a==='apply'){
+   const val=(id,min,max)=>clamp(Number($(id).value)||min,min,max);
+   MEMBERS[game.memberIndex].goals=SYMBOLS.slice(0,4).map((s,i)=>val('goalEdit'+i,1,500));
+   CFG.matchPoints[3]=val('ruleAtk',1,100);CFG.matchPoints[4]=Math.round(CFG.matchPoints[3]*1.65);
+   CFG.matchPoints[5]=Math.round(CFG.matchPoints[3]*2.66);
+   CFG.damageFactor=val('ruleAi',.1,3);CFG.hpBase=val('ruleHP',30,500);
+   CFG.healPerMatch=val('ruleHeal',1,200);
+   MEMBERS[game.memberIndex].aiSkill=clamp(Number($('ruleSkill').value),0,1);
+   store();
+   startSession(game.memberIndex);
+  }
+ });
+ game.board=makeBoard();
+ setPortrait(0);renderAll();showMenu();
+ window.GAIA_DEBUG={scan,potentialMoves,makeBoard,game,CFG,startSession,attempt};
+})();
+</script>
+</body>
+</html>
