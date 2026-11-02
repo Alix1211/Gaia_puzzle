@@ -414,11 +414,14 @@
        game.xp-=nextXP(game.trainingLevel);game.trainingLevel++;ups++;
      }
      save();renderHUD();
+     const clearLine=GaiaDialogues[String(MEMBERS[game.memberIndex].id)]?.clear?.[0]||'';
      showModal('<div class="modalbrand">GAIA CITY · EXCLUSIVE WELLNESS</div><h1 class="modaltitle">SESSION COMPLETE</h1>'+
       '<p class="modaldesc">'+MEMBERS[game.memberIndex].name+' · 요구치 네 가지 달성!<br>TURN '+game.turn+' · XP +'+xp+
       (firstClear?' (첫 완료 보너스 포함)':'')+(ups?' · LEVEL UP! ATK '+attackPower(game.trainingLevel):'')+'</p>'+
+      (clearLine?'<p class="modaldesc" id="sessionClearLine"></p>':'')+
       '<div class="modalactions"><button class="goldbtn primary" data-action="next">NEXT MEMBER</button>'+
       '<button class="goldbtn" data-action="retry">다시 도전</button><button class="goldbtn" data-action="menu">회원 선택</button></div>');
+     if(clearLine)$('sessionClearLine').textContent=clearLine;
    }else{
      setPose(1);
      showModal('<div class="modalbrand">GAIA CITY · EXCLUSIVE WELLNESS</div><h1 class="modaltitle">SESSION ENDED</h1>'+
