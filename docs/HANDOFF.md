@@ -1,5 +1,14 @@
 # GAIA WELLNESS ROYALE 작업 인수인계
 
+## 화이트·로즈골드 APK 교정 · 2026-11-04
+
+- 앞선 블랙골드 v0.6.1 APK는 구버전으로 잘못 제작했습니다. 해당 버전으로 수행한 2,200판 시뮬레이션은 최신 스킬판의 검증 결과가 아닙니다.
+- 실제 최신본: Library `GAIA-Wellness-Royale-Skill-FX.html` (ID `libfile_5ace88c381c88191bd8f7efb159fd907`), 화이트/로즈골드 스킨과 5개 스킬 게이지/신규 연출 포함. 터치 미니게임은 없습니다.
+- 새 APK: `GAIA-Wellness-Royale-RoseGold-v0.6.2.apk`, 버전 `0.6.2-rosegold.2`(60201), 15,778,332 bytes. 같은 앱 ID/서명으로 덮어설치 가능합니다.
+- 원본 HTML SHA256 `9e8905edc21149b3d50483bb1c7a9b4bc8c05919ce0f0b2e1bb375029a5a32d1`와 APK 내장 HTML 바이트 일치 확인. JS 구문·APK 서명·정렬·DEX 검사 통과. Android 실기기 설치·화면·실제 진동은 여전히 미확인입니다.
+- **GitHub 루트 index.html과 source/는 이전 블랙골드 버전입니다.** 최신본으로 취급하지 마세요. android/README.md의 최신 원본 링크를 사용합니다. 빌드 스크립트는 원본 해시 불일치 시 중단하고 구버전 루트 HTML을 자동 사용하지 않습니다.
+
+
 ## Android APK 최초 빌드 · 2026-11-04
 
 - `GAIA-Wellness-Royale-v0.6.1.apk` 실제 생성: 12,083,740 bytes. 패키지 `com.gaia.wellnessroyale`, 버전 `0.6.1-apk.1`.

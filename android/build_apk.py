@@ -11,10 +11,14 @@ OUT = ROOT / 'out'
 PRIVATE = ROOT / 'private'
 OUT.mkdir(exist_ok=True)
 PRIVATE.mkdir(exist_ok=True, mode=0o700)
-game_source = ROOT.parent / 'index.html'
-if game_source.is_file():
+game_source = Path(os.environ.get('GAIA_GAME_HTML', PROJECT/'assets/index.html'))
+if not game_source.is_file():
+    raise SystemExit('RoseGold source HTML missing. Set GAIA_GAME_HTML to GAIA-Wellness-Royale-Skill-FX.html; do not use legacy root index.html.')
+if game_source.resolve() != (PROJECT/'assets/index.html').resolve():
     (PROJECT/'assets').mkdir(exist_ok=True)
     shutil.copyfile(game_source, PROJECT/'assets/index.html')
+if hashlib.sha256((PROJECT/'assets/index.html').read_bytes()).hexdigest() != '9e8905edc21149b3d50483bb1c7a9b4bc8c05919ce0f0b2e1bb375029a5a32d1' and not os.environ.get('GAIA_ALLOW_NEW_GAME_SOURCE'):
+    raise SystemExit('Unexpected game HTML. Confirm the new source before using GAIA_ALLOW_NEW_GAME_SOURCE=1.')
 for name in ['aapt2','d8','zipalign','apksigner']:
     (TOOLS/name).chmod(0o755)
 def run(*cmd):
@@ -43,7 +47,7 @@ run(TOOLS/'d8','--lib',ANDROID_JAR,'--min-api','23','--output',dex,*sorted(class
 with zipfile.ZipFile(OUT/'base.apk','a',compression=zipfile.ZIP_DEFLATED) as z:
     for f in dex.glob('*.dex'):z.write(f,f.name)
 run(TOOLS/'zipalign','-P','16','-f','4',OUT/'base.apk',OUT/'aligned.apk')
-apk=OUT/'GAIA-Wellness-Royale-v0.6.1.apk'
+apk=OUT/'GAIA-Wellness-Royale-RoseGold-v0.6.2.apk'
 run(TOOLS/'apksigner','sign','--ks',key,'--ks-key-alias','gaia-wellness-royale',
     '--ks-pass','file:'+str(password),
     '--out',apk,OUT/'aligned.apk')
@@ -53,7 +57,7 @@ with zipfile.ZipFile(apk) as z:
     assert z.read('assets/index.html')==(PROJECT/'assets/index.html').read_bytes()
     assert z.read('classes.dex')[:4]==b'dex\n'
     assert 'AndroidManifest.xml' in z.namelist()
-result={'apk':apk.name,'package':'com.gaia.wellnessroyale','version':'0.6.1-apk.1',
+result={'apk':apk.name,'package':'com.gaia.wellnessroyale','version':'0.6.2-rosegold.2',
     'size':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),
     'html_sha256':hashlib.sha256((PROJECT/'assets/index.html').read_bytes()).hexdigest(),
     'verified':['APK signature','ZIP alignment','DEX present','embedded HTML byte identity'],

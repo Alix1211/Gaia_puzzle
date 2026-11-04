@@ -1,5 +1,7 @@
 # GAIA WELLNESS ROYALE
 
+> **최신판 안내 · 2026-11-04:** 현재 루트 `index.html` 및 아래 v0.6.1 소개는 이전 블랙골드 버전입니다. 화이트·로즈골드/5개 스킬판의 정확한 원본과 교정 APK 정보는 [android/README.md](android/README.md), [docs/HANDOFF.md](docs/HANDOFF.md)를 먼저 확인하세요.
+
 가이아 시티 세계관의 **8×8 매치 퍼즐 대전 게임**입니다. 조교(플레이어)와 회원(AI)이 한 퍼즐판에서 번갈아 매치합니다. 기존 `Wellness` 경영 시뮬레이션 및 `Wellness-RPG`와는 별도로 제작한 게임입니다.
 
 ## 현재 버전
