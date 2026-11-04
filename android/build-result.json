@@ -1,0 +1,18 @@
+{
+  "apk": "GAIA-Wellness-Royale-v0.6.1.apk",
+  "package": "com.gaia.wellnessroyale",
+  "version": "0.6.1-apk.1",
+  "size": 12083740,
+  "sha256": "49e2242d9cba6552ebaf01c38e6b4f71974f718f6e4bbfad725ce3300f2c6e93",
+  "html_sha256": "ce2d95bf0c33df5fc475230e86720432a2499945d6941195bcb98738984761fe",
+  "verified": [
+    "APK signature",
+    "ZIP alignment",
+    "DEX present",
+    "embedded HTML byte identity"
+  ],
+  "not_verified": [
+    "Android device installation and UI",
+    "physical vibration motor"
+  ]
+}

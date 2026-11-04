@@ -1,5 +1,14 @@
 # GAIA WELLNESS ROYALE 작업 인수인계
 
+## Android APK 최초 빌드 · 2026-11-04
+
+- `GAIA-Wellness-Royale-v0.6.1.apk` 실제 생성: 12,083,740 bytes. 패키지 `com.gaia.wellnessroyale`, 버전 `0.6.1-apk.1`.
+- 저장소 원본 `index.html`을 바이트 변경 없이 내장. 터치 미니게임 없이 기존 퍼즐 성장/회원 진행을 사용합니다.
+- APK 서명(v1/v2/v3), ZIP 정렬, DEX, 내장 HTML 일치 검사 통과. Android 실기기 설치/화면/실제 진동은 미검증입니다.
+- 앱 내장 오프라인 실행, 회전 시 WebView 유지, 기존 진동 호출에 Android 브리지 연결. 자동 온라인 업데이트는 없습니다. 브라우저 세이브 자동 이전도 없습니다.
+- 재빌드 소스와 설명: `android/README.md`, 결과 해시: `android/build-result.json`. APK와 개인 서명 백업은 별도 전달했고 키/비밀번호는 Git에 올리지 않았습니다. 다음 업데이트는 동일 키를 복원해야 합니다.
+
+
 ## 대사 24명 실제 적용 · 2026-11-02
 
 - `source/gaia-dialogues.json`에 회원 24명 × 8문장 = **총 192문장**을 반영했습니다. `intro` 2, `hit` 2, `chain` 1, `counter` 1, `heal` 1, `clear` 1입니다.
